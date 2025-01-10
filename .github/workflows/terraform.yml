@@ -3,12 +3,12 @@ name: "Terraform Infrastructure Change Management Pipeline with GitHub Actions"
 on: 
   push: 
     branches:
-    - ansible
+    - main
     paths:
     - terraform/**
   pull_request:
     branches:
-    - ansible
+    - main
     paths:
     - terraform/**
 
@@ -21,6 +21,9 @@ jobs:
   terraform:
     name: "Terraform Infrastructure Change Management"
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
     defaults:
       run:
         shell: bash
@@ -34,9 +37,7 @@ jobs:
         run: |
           perl -pi -e 's/<organization_ID>/${{ secrets.ORG_ID }}/' main.tf
           perl -pi -e 's/<activation_key_name>/${{ secrets.ACTIVATION_KEY }}/' main.tf
-          perl -pi -e 's/new-install-password/${{ secrets.AAP_PASS }}/' main.tf
-          perl -pi -e 's/rhn_user/${{ secrets.RHN_USER }}/' main.tf
-          perl -pi -e 's/rhn_pass/${{ secrets.RHN_PASS }}/' main.tf
+
 
 #      - name: Create bucket in S3 for backend
 #        if: github.event_name == 'pull_request'
