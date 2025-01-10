@@ -1,4 +1,4 @@
-# Ansible Automation Platform 2.5 (Containerized)
+# Open WebUI with Ollama on AWS EC2 via Terraform
 
 ## Terraform Infrastructure
 
