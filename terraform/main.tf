@@ -166,7 +166,8 @@ resource "aws_instance" "ollama_instance" {
   associate_public_ip_address = true
   key_name        = aws_key_pair.cloud_key.key_name
   user_data                   = file("user_data.txt")
-  ami                         = "ami-036841078a4b68e14"
+#  ami                         = data.aws_ami.rhel.id
+  ami                         = "ami-0000d18df18b47ae9"
   availability_zone           = "us-east-2a"
   subnet_id                   = aws_subnet.ollama_subnet.id
 
