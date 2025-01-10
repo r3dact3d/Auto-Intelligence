@@ -54,6 +54,8 @@ This project leverages Terraform to provision infrastructure and integrates GitH
    - Ensure your SSH public key is added to `user_data.txt`.  *This is the public key from your laptop or bastion server so you can ssh in for maintenance and run installer.*
    - Create an S3 bucket referenced in the backend configuration of `main.tf` (e.g., `tfstate-bucket-auto-intelligence`).  *If you use a different name look and update the code.*
    - Review `remote-exec` custom code for specifics to configure ec2 instance in `main.tf`.
+   - Validate AMI id and instance type **this is currently configured for GPU and Nvidia acceleration**
+   - TODO: add security group to allow port 3000 to only single source IP or custom range!
 
 
 #### Pull Request Validation
