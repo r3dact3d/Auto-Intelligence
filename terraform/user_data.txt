@@ -3,5 +3,5 @@ echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC0YP818L8HTt+pKUU+XPD8dJ9kYDhtplUKao
 mkdir /home/ec2-user/open-webui
 aws s3 cp s3://tfstate-bucket-auto-intelligence/ca-bundle-ollama.pem /home/ec2-user/open-webui/ca-bundle-ollama.pem 
 aws s3 cp s3://tfstate-bucket-auto-intelligence/webui.db /home/ec2-user/open-webui/webui.db
-docker run -d -p 3000:8080 --gpus=all -v ollama:/root/.ollama -v /home/ec2-user/open-webui:/app/backend/data --name open-webui --restart always ghcr.io/open-webui/open-webui:ollama
+docker run -d -p 3000:8080 --gpus=all -v ollama:/root/.ollama -v /home/ec2-user/open-webui:/app/backend/data -v /home/ec2user/open-webui/ca-bundle-ollama.pem:/etc/ssl/certs/ca-bundle.pem -e REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-bundle.pem --name open-webui --restart always ghcr.io/open-webui/open-webui:ollama
 
