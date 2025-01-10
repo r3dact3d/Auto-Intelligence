@@ -184,15 +184,17 @@ resource "aws_instance" "ollama_instance" {
   }
 }
 
+
 resource "null_resource" "hostname_update" {
   depends_on = [aws_instance.ollama_instance]
 
   provisioner "remote-exec" {
     inline = [
-      
-      # Ensure stuff is installed
-      "echo "I'm just happy to be here",
+    
+      # Download and extract the setup file
+      "sleep 5",
 
+      # Configure and run the playbook
     ]
     
     
