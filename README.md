@@ -98,19 +98,13 @@ This project leverages Terraform to provision infrastructure and integrates GitH
 
    At this point, we should be able to access the Open WebUI through our browser at *https://public IP/:3000* so we can login first as Admin and do initial config.
 
-   > To get a model into Ollama I also had to execute the below commands.
+   > To get a model to work with search [Ollama](https://ollama.com/search) for any model you want, then search in the [Open WebUI](https://docs.openwebui.com/getting-started/quick-start/starting-with-ollama 
+   ) GUI to pull it.
 
-   ```bash
-   docker exec -it open-webui /bin/bash
-   ```
-   Once, I'm at the docker prompt, I can pull the model I want.
-   ```bash
-   ollama pull llama2
-   ```
+   ![alt text](/images/model_search.png)
 
-   Now, I can go back to my Open WebUI chat window and see the model available.
 
-   > However, looks like I could have done that through Open WebUI if I had followed this document > https://docs.openwebui.com/getting-started/quick-start/starting-with-ollama 
+Now, we can start chatting, engineering prompts, or start fine-tuning.
 
 ## Validation - Benchmarking
 
@@ -119,7 +113,9 @@ This project leverages Terraform to provision infrastructure and integrates GitH
 nvidia-smi -l
 ```
 
-![alt text](/images/image.png)
+
+
+![alt text](/images/nvidia-smi-cmd.png)
 
 ## Backup and Restore - to be tested
 
