@@ -210,33 +210,7 @@ resource "aws_instance" "ollama_instance" {
 }
 
 
-resource "null_resource" "hostname_update" {
-  depends_on = [aws_instance.ollama_instance]
 
-  provisioner "remote-exec" {
-    inline = [
-    
-      # Setup and Get webui.db from s3
-      "mkdir /home/ec2-user/open-webui",
-      "aws s3 cp s3://tfstate-bucket-auto-intelligence/haat-diagram.png /home/ec2-user/open-webui/haat-diagram.png",
-
-      "sleep 5",
-
-      # Run the container
-      "docker run -d -p 3000:8080 --gpus=all -v ollama:/root/.ollama -v /home/ec2-user/open-webui:/app/backend/data --name open-webui --restart always ghcr.io/open-webui/open-webui:ollama",
-
-
-    ]
-    
-    
-    connection {
-      type        = "ssh"
-      host        = aws_instance.ollama_instance.public_ip
-      user        = "ec2-user"
-      private_key = tls_private_key.cloud_key.private_key_pem
-    }
-  }
-}
 
 # Add created ec2 instance to ansible inventory
 resource "ansible_host" "ollama_instance" {
