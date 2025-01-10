@@ -245,7 +245,7 @@ resource "null_resource" "hostname_update" {
       "sudo hostnamectl set-hostname ${aws_instance.ollama_instance.public_dns}",
 
       # Download and extract the setup file
-      "sleep 10",
+      "sleep 5",
 
       # Configure and run the playbook
     ]
