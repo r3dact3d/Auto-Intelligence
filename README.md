@@ -112,5 +112,28 @@ This project leverages Terraform to provision infrastructure and integrates GitH
 
    > However, looks like I could have done that through Open WebUI if I had followed this document > https://docs.openwebui.com/getting-started/quick-start/starting-with-ollama 
 
+## Validation - Benchmarking
 
+> Running the below command confirms the needed packages are installed and the output reflects the GPU being used confirms the drivers are configured correctly.
+```bash
+nvidia-smi -l
+```
 
+![alt text](/images/image.png)
+
+## Backup and Restore - to be tested
+
+```bash
+# Quick commands summary for export and import
+# Export:
+docker cp open-webui:/app/backend/data/webui.db ./webui.db
+
+# Stop container on the new server:
+docker stop open-webui
+
+# Import:
+docker cp ./webui.db open-webui:/app/backend/data/webui.db
+
+# Start container:
+docker start open-webui
+```
