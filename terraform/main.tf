@@ -100,12 +100,12 @@ resource "aws_security_group" "ollama_security_group" {
   }
 }
 
-resource "aws_security_group_rule" "http_ingress_access" {
+resource "aws_security_group_rule" "ollama_ingress_access" {
   type              = "ingress"
-  from_port         = 80
-  to_port           = 80
+  from_port         = 3000
+  to_port           = 3000
   protocol          = "tcp"
-  cidr_blocks       = ["0.0.0.0/0"]
+  cidr_blocks       = ["<source_ip>/32"]
   security_group_id = aws_security_group.ollama_security_group.id
 }
 
@@ -114,27 +114,19 @@ resource "aws_security_group_rule" "ssh_ingress_access" {
   from_port         = 22
   to_port           = 22
   protocol          = "tcp"
-  cidr_blocks       = ["0.0.0.0/0"]
+  cidr_blocks       = ["<source_ip>/32"]
   security_group_id = aws_security_group.ollama_security_group.id
 }
 
-resource "aws_security_group_rule" "postgresql_ingress_access" {
-  type              = "ingress"
-  from_port         = 5432
-  to_port           = 5432
-  protocol          = "tcp"
-  cidr_blocks       = ["0.0.0.0/0"]
-  security_group_id = aws_security_group.ollama_security_group.id
-}
 
-resource "aws_security_group_rule" "https_ingress_access" {
-  type              = "ingress"
-  from_port         = 443
-  to_port           = 443
-  protocol          = "tcp"
-  cidr_blocks       = ["0.0.0.0/0"]
-  security_group_id = aws_security_group.ollama_security_group.id
-}
+#resource "aws_security_group_rule" "https_ingress_access" {
+#  type              = "ingress"
+#  from_port         = 443
+#  to_port           = 443
+#  protocol          = "tcp"
+#  cidr_blocks       = ["0.0.0.0/0"]
+#  security_group_id = aws_security_group.ollama_security_group.id
+#}
 
 
 resource "aws_security_group_rule" "egress_access" {
@@ -146,19 +138,6 @@ resource "aws_security_group_rule" "egress_access" {
   security_group_id = aws_security_group.ollama_security_group.id
 }
 
-# Set ami for ec2 instance
-data "aws_ami" "rhel" {
-  most_recent = true
-  filter {
-    name   = "name"
-    values = ["RHEL-9.4.0_HVM*"]
-  }
-  filter {
-    name   = "virtualization-type"
-    values = ["hvm"]
-  }
-  owners = ["309956199498"]
-}
 
 resource "aws_instance" "ollama_instance" {
   instance_type               = "g4dn.2xlarge"
@@ -166,7 +145,6 @@ resource "aws_instance" "ollama_instance" {
   associate_public_ip_address = true
   key_name        = aws_key_pair.cloud_key.key_name
   user_data                   = file("user_data.txt")
-#  ami                         = data.aws_ami.rhel.id
   ami                         = "ami-0000d18df18b47ae9"
   availability_zone           = "us-east-2a"
   subnet_id                   = aws_subnet.ollama_subnet.id

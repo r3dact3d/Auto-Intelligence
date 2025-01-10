@@ -92,8 +92,7 @@ This project leverages Terraform to provision infrastructure and integrates GitH
   
    ![Terraform Output](images/tf_output.png)
 
-6. **Install **  
-
+6. **Install**
    From the machine with the corresponding SSH keys that were added to the `user_data.txt` :  
 
    ```bash
