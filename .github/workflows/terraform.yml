@@ -37,7 +37,7 @@ jobs:
         run: |
           perl -pi -e 's/<organization_ID>/${{ secrets.ORG_ID }}/' main.tf
           perl -pi -e 's/<activation_key_name>/${{ secrets.ACTIVATION_KEY }}/' main.tf
-
+          perl -pi -e 's/<source_ip>/${{ secrets.SOURCE_IP }}/g' main.tf
 
 #      - name: Create bucket in S3 for backend
 #        if: github.event_name == 'pull_request'

@@ -1,0 +1,16 @@
+services:
+  openwebui:
+    image: ghcr.io/open-webui/open-webui:ollama
+    volumes:
+      - /var/containers/openwebui:/app/backend/data:rw
+      - /etc/containers/openwebui/compusrv.crt:/etc/ssl/certs/ca-certificates.crt:ro
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    environment:
+      - WEBUI_NAME=compusrv
+      - ENABLE_SIGNUP=False
+      - ENABLE_COMMUNITY_SHARING=False
+      - WEBUI_SESSION_COOKIE_SAME_SITE=strict
+      - WEBUI_SESSION_COOKIE_SECURE=True
+      - ENABLE_OLLAMA_API=False
+      - REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
