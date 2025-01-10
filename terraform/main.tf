@@ -166,7 +166,8 @@ resource "aws_instance" "ollama_instance" {
   associate_public_ip_address = true
   key_name        = aws_key_pair.cloud_key.key_name
   user_data                   = file("user_data.txt")
-  ami                         = data.aws_ami.rhel.id
+#  ami                         = data.aws_ami.rhel.id
+  ami                         = "ami-036841078a4b68e14"
   availability_zone           = "us-east-2a"
   subnet_id                   = aws_subnet.ollama_subnet.id
 
@@ -183,67 +184,13 @@ resource "aws_instance" "ollama_instance" {
   }
 }
 
-# Create a Security Group for EFS
-resource "aws_security_group" "efs_security_group" {
-  name        = "efs-sg"
-  description = "Allow EFS access"
-  vpc_id      = aws_vpc.ollama_vpc.id
-
-  ingress {
-    from_port   = 2049
-    to_port     = 2049
-    protocol    = "tcp"
-    cidr_blocks = ["10.1.0.0/16"] # Adjust CIDR block as needed
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = {
-    Name      = "EFS-Security-Group"
-    Terraform = "true"
-  }
-}
-
-# Create an EFS File System
-resource "aws_efs_file_system" "efs" {
-  creation_token = "ollama-efs"
-  performance_mode = "generalPurpose" # or "maxIO" for high IOPS
-  lifecycle_policy {
-    transition_to_ia = "AFTER_30_DAYS" # Optional: Move files to Infrequent Access after 30 days
-  }
-
-  tags = {
-    Name      = "ollama-EFS"
-    Terraform = "true"
-  }
-}
-
-# Create Mount Targets for EFS
-resource "aws_efs_mount_target" "efs_mount_target_a" {
-  file_system_id  = aws_efs_file_system.efs.id
-  subnet_id       = aws_subnet.ollama_subnet.id
-  security_groups = [aws_security_group.efs_security_group.id]
-}
 
 resource "null_resource" "hostname_update" {
   depends_on = [aws_instance.ollama_instance]
 
   provisioner "remote-exec" {
     inline = [
-      # Register Red Hat Host
-      "sudo rhc connect --activation-key=<activation_key_name> --organization=<organization_ID>",
-      
-      # Ensure stuff is installed
-      "sudo dnf install -y ansible-core wget git-core rsync vim amazon-efs-utils nvidia-driver-525 nvidia-container-toolkit",
-
-      # Set hostname
-      "sudo hostnamectl set-hostname ${aws_instance.ollama_instance.public_dns}",
-
+    
       # Download and extract the setup file
       "sleep 5",
 
