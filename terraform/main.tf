@@ -138,6 +138,52 @@ resource "aws_security_group_rule" "egress_access" {
   security_group_id = aws_security_group.ollama_security_group.id
 }
 
+# Create IAM role for EC2 to access S3
+resource "aws_iam_role" "ec2_s3_access" {
+  name = "ec2_s3_access_role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "ec2.amazonaws.com"
+        }
+      }
+    ]
+  })
+}
+
+# Create IAM policy for S3 access
+resource "aws_iam_role_policy" "s3_access_policy" {
+  name = "s3_access_policy"
+  role = aws_iam_role.ec2_s3_access.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "s3:GetObject"
+        ]
+        Resource = [
+          "arn:aws:s3:::tfstate-bucket-auto-intelligence/*"  # Replace with your bucket name
+        ]
+      }
+    ]
+  })
+}
+
+#s3://tfstate-bucket-auto-intelligence/haat-diagram.png /home/ec2-user/open-webui/haat-diagram.png
+
+# Create IAM instance profile
+resource "aws_iam_instance_profile" "ec2_profile" {
+  name = "ec2_s3_profile"
+  role = aws_iam_role.ec2_s3_access.name
+}
 
 resource "aws_instance" "ollama_instance" {
   instance_type               = "g4dn.2xlarge"
@@ -148,6 +194,7 @@ resource "aws_instance" "ollama_instance" {
   ami                         = "ami-0000d18df18b47ae9"
   availability_zone           = "us-east-2a"
   subnet_id                   = aws_subnet.ollama_subnet.id
+  iam_instance_profile = aws_iam_instance_profile.ec2_profile.name
 
 # Specify the root block device to adjust volume size
   root_block_device {
