@@ -2,7 +2,7 @@
 
 ## Terraform Infrastructure
 
-### Summary
+### Overview
 
 This project leverages Terraform to provision infrastructure and integrates GitHub Actions for streamlined automation. Key features include:
 
@@ -24,6 +24,14 @@ This project leverages Terraform to provision infrastructure and integrates GitH
 
 ### Implementation
 
+> Summary of steps:
+1. Clone this repo
+2. Create/update GitHub Secrets
+3. Create Terraform backend S3 bucket in AWS
+4. Create a new github Branch & update SSH key in user_data.txt
+5. Double check resources in main.tf
+6. Create a PullRequest to Main and merge
+
 #### Procedure
 
 1. **Gather Requirements**
@@ -33,7 +41,8 @@ This project leverages Terraform to provision infrastructure and integrates GitH
    Add the following secrets in the GitHub repository settings:  
 
    - `AWS_ACCESS_KEY`  
-   - `AWS_SECRET_ACCESS_KEY`  
+   - `AWS_SECRET_ACCESS_KEY`
+   - `SOURCE_IP` - this is the source ip used to login to Open WebUI for 1st time
    > **Note:**
    > - Below 2 secrets are only needed for rhel servers that need to be registered
    - `ORG_ID` (Profile in [cloud.redhat.com](https://cloud.redhat.com))  
@@ -83,8 +92,7 @@ This project leverages Terraform to provision infrastructure and integrates GitH
   
    ![Terraform Output](images/tf_output.png)
 
-6. **Install **  
-
+6. **Install**
    From the machine with the corresponding SSH keys that were added to the `user_data.txt` :  
 
    ```bash
@@ -95,6 +103,10 @@ This project leverages Terraform to provision infrastructure and integrates GitH
    ```bash
    docker run -d -p 3000:8080 --gpus=all -v ollama:/root/.ollama -v open-webui:/app/backend/data --name open-webui --restart always ghcr.io/open-webui/open-webui:ollama
    ```
+
+   ```
+   --volume=/etc/ssl/certs/ca-certificiate.crt:/etc/ssl/certs/ca-certificiates.crt:ro`
+```
 
    At this point, we should be able to access the Open WebUI through our browser at *https://public IP/:3000* so we can login first as Admin and do initial config. 
    
@@ -136,3 +148,12 @@ docker cp ./webui.db open-webui:/app/backend/data/webui.db
 # Start container:
 docker start open-webui
 ```
+
+
+##k todo
+
+- enable tls
+- add source ip secret in github to terraform security group rule
+- attempt backup and restore
+- automate backup
+- automate docker run and restore
