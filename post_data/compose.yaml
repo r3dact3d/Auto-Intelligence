@@ -2,12 +2,13 @@ services:
   openwebui:
     image: ghcr.io/open-webui/open-webui:ollama
     volumes:
-      - /var/containers/openwebui:/app/backend/data:rw
-      - /etc/containers/openwebui/compusrv.crt:/etc/ssl/certs/ca-certificates.crt:ro
+      - /home/ec2-user/openwebui:/app/backend/data:rw
+      - /home/ec2-user/openwebui/webui.db:/
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
+      - /home/ec2-user/ollama:/root/.ollama
     environment:
-      - WEBUI_NAME=compusrv
+      - WEBUI_NAME=r3dact3d
       - ENABLE_SIGNUP=False
       - ENABLE_COMMUNITY_SHARING=False
       - WEBUI_SESSION_COOKIE_SAME_SITE=strict

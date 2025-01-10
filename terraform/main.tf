@@ -169,10 +169,16 @@ resource "null_resource" "hostname_update" {
   provisioner "remote-exec" {
     inline = [
     
-      # Download and extract the setup file
+      # Setup and Get webui.db from s3
+      "mkdir /home/ec2-user/open-webui",
+      "aws s3 cp s3://tfstate-bucket-auto-intelligence/haat-diagram.png /home/ec2-user/open-webui/haat-diagram.png",
+
       "sleep 5",
 
-      # Configure and run the playbook
+      # Run the container
+      "docker run -d -p 3000:8080 --gpus=all -v ollama:/root/.ollama -v /home/ec2-user/open-webui:/app/backend/data --name open-webui --restart always ghcr.io/open-webui/open-webui:ollama",
+
+
     ]
     
     
