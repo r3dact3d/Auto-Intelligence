@@ -96,7 +96,7 @@ This project leverages Terraform to provision infrastructure and integrates GitH
 
    At this point, we should be able to access the Open WebUI through our browser at *https://public IP/:3000* so we can login first as Admin and do initial config.
 
-   > However, to get a model into Ollama I also had to execute the below commands.
+   > To get a model into Ollama I also had to execute the below commands.
 
    ```bash
    docker exec -it open-webui /bin/bash
@@ -108,6 +108,7 @@ This project leverages Terraform to provision infrastructure and integrates GitH
 
    Now, I can go back to my Open WebUI chat window and see the model available.
 
-   > NOTE: I'm working on automating this part.
+   > However, looks like I could have done that through Open WebUI if I had followed this document > https://docs.openwebui.com/getting-started/quick-start/starting-with-ollama 
+
 
 
