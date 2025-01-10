@@ -87,8 +87,27 @@ This project leverages Terraform to provision infrastructure and integrates GitH
 
    ```bash
    ssh ec2-user@<public IP>
+   ```
 
+   To install Open WebUI docker container that is bundled with Ollama
+   ```bash
+   docker run -d -p 3000:8080 --gpus=all -v ollama:/root/.ollama -v open-webui:/app/backend/data --name open-webui --restart always ghcr.io/open-webui/open-webui:ollama
+   ```
 
-   
+   At this point, we should be able to access the Open WebUI through our browser at *https://public IP/:3000* so we can login first as Admin and do initial config.
+
+   > However, to get a model into Ollama I also had to execute the below commands.
+
+   ```bash
+   docker exec -it open-webui /bin/bash
+   ```
+   Once, I'm at the docker prompt, I can pull the model I want.
+   ```bash
+   ollama pull llama2
+   ```
+
+   Now, I can go back to my Open WebUI chat window and see the model available.
+
+   > NOTE: I'm working on automating this part.
 
 
