@@ -1,7 +1,20 @@
 #!/bin/bash
+
+# Put your laptop or workstation ssh public key here
 echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC0YP818L8HTt+pKUU+XPD8dJ9kYDhtplUKaodICGcS63A6EgdGGaxh45DVz8JmTNbP3RHQw6XbfTjNGmOO56UaGxQOsc+ONZ8fFjd+qa+7hBo6tIlrdRkrgZgKNDhTh4HijDgaqpPLhXroUK2TE61CSCiJezVbwwXtXU43wQYoeR06E+Ji1lfLLb5b5pIuUKwTRwa+6u9zL7JrDznKq5YZxsmkX3PNI9gHQT+SnSqPOGctXhbMQX7JWZA60EFx8MZXe8O9QC3LMrgNv90CCR9qnyd7/WTtb+lk/7lTYbFfj2W0WsQZMc2tnvoNv8azeCQcSHs6U2nsKd7lxXmmD0OFtXxSqI/O1628Q71sFjPIvET04I9ENHaAWwaI3s98I3Lt8Z5NLNqHrxwhmrFT5mTdn91Fzq4Ax7UKqcVG8Rtkzg7HnXL6nLIQs/cdRprysJIGC0aEpoHSN1OTqMcJkP4ySv5aYgT/G68Uau5JkBS8tKbeKNw+KE4Aq6tUJ+3etYc= brthomps@brthomps-thinkpadx1carbongen9.remote.csb" >> /home/ec2-user/.ssh/authorized_keys
+
+# Configure nginx 
+mkdir -p conf.d ssl 
+aws s3 cp s3://tfstate-bucket-auto-intelligence/open-webui.conf /home/ec2-user/conf.d/open-webui.conf
+sleep 2
+output=$(curl -s -f api.ipify.org)
+sed -i "s/<ip_address>/$output/" /home/ec2-user/conf.d/open-webui.conf
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout ssl/nginx.key -out ssl/nginx.crt -subj "/CN=$output"
+sleep 2
+docker run -d -name nginx -p 443:443 -v /home/ec2-user/conf.d:/etc/nginx/conf.d -v /home/ec2-user/ssl:/etc/nginx/ssl nginx:alpine
+
+# Configure 
 mkdir /home/ec2-user/open-webui
-aws s3 cp s3://tfstate-bucket-auto-intelligence/ca-bundle-ollama.pem /home/ec2-user/open-webui/ca-bundle-ollama.pem 
 aws s3 cp s3://tfstate-bucket-auto-intelligence/webui.db /home/ec2-user/open-webui/webui.db
-docker run -d -p 3000:8080 --gpus=all -v ollama:/root/.ollama -v /home/ec2-user/open-webui:/app/backend/data -v /home/ec2user/open-webui/ca-bundle-ollama.pem:/etc/ssl/certs/ca-bundle.pem -e REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-bundle.pem --name open-webui --restart always ghcr.io/open-webui/open-webui:ollama
+docker run -d -p 3000:8080 --gpus=all -v ollama:/root/.ollama -v /home/ec2-user/open-webui:/app/backend/data --name open-webui --restart always ghcr.io/open-webui/open-webui:ollama
 
