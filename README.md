@@ -149,6 +149,10 @@ docker cp ./webui.db open-webui:/app/backend/data/webui.db
 docker start open-webui
 ```
 
+```bash
+docker cp open-webui:/app/backend/data/webui.db ./webui.db 
+aws s3 cp webui.db s3://tfstate-bucket-auto-intelligence/webui.db
+```
 
 ##k todo
 
