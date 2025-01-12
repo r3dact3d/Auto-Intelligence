@@ -104,10 +104,6 @@ This project leverages Terraform to provision infrastructure and integrates GitH
    docker run -d -p 3000:8080 --gpus=all -v ollama:/root/.ollama -v open-webui:/app/backend/data --name open-webui --restart always ghcr.io/open-webui/open-webui:ollama
    ```
 
-   ```
-   --volume=/etc/ssl/certs/ca-certificiate.crt:/etc/ssl/certs/ca-certificiates.crt:ro
-   ```
-
    At this point, we should be able to access the Open WebUI through our browser at *https://public IP/:3000* so we can login first as Admin and do the initial config.
 
    **NOTE:** You might still need to open port 3000 for your IP address if you didn't code it in Terraform.
