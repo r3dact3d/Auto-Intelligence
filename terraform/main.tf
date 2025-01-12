@@ -14,6 +14,7 @@ terraform {
   required_version = ">= 1.2.0"
 }
 
+# This s3 bucket needs to be created already
 terraform {
   backend "s3" {
     bucket = "tfstate-bucket-auto-intelligence"
@@ -26,11 +27,13 @@ provider "aws" {
   region = "us-east-2"
 }
 
-#Generate SSH key pair 
+# Really don't need this key pair
+#Generate SSH key pair for remote-exec
 resource "tls_private_key" "cloud_key" {
   algorithm = "RSA"
   rsa_bits  = 2048
 }
+
 
 # Add key for ssh connection
 resource "aws_key_pair" "cloud_key" {
@@ -100,6 +103,7 @@ resource "aws_security_group" "ollama_security_group" {
   }
 }
 
+# So I can http to Open WebUI for testing and troubleshooting
 resource "aws_security_group_rule" "ollama_ingress_access" {
   type              = "ingress"
   from_port         = 3000
@@ -109,6 +113,7 @@ resource "aws_security_group_rule" "ollama_ingress_access" {
   security_group_id = aws_security_group.ollama_security_group.id
 }
 
+# So I can ssh to the ec2 instance
 resource "aws_security_group_rule" "ssh_ingress_access" {
   type              = "ingress"
   from_port         = 22
@@ -118,15 +123,15 @@ resource "aws_security_group_rule" "ssh_ingress_access" {
   security_group_id = aws_security_group.ollama_security_group.id
 }
 
-
-#resource "aws_security_group_rule" "https_ingress_access" {
-#  type              = "ingress"
-#  from_port         = 443
-#  to_port           = 443
-#  protocol          = "tcp"
-#  cidr_blocks       = ["0.0.0.0/0"]
-#  security_group_id = aws_security_group.ollama_security_group.id
-#}
+# Secure port to Open WebUI
+resource "aws_security_group_rule" "https_ingress_access" {
+  type              = "ingress"
+  from_port         = 443
+  to_port           = 443
+  protocol          = "tcp"
+  cidr_blocks       = ["<source_ip>/32"]
+  security_group_id = aws_security_group.ollama_security_group.id
+}
 
 
 resource "aws_security_group_rule" "egress_access" {
@@ -177,8 +182,6 @@ resource "aws_iam_role_policy" "s3_access_policy" {
     ]
   })
 }
-
-#s3://tfstate-bucket-auto-intelligence/haat-diagram.png /home/ec2-user/open-webui/haat-diagram.png
 
 # Create IAM instance profile
 resource "aws_iam_instance_profile" "ec2_profile" {

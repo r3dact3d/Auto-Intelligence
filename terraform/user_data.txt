@@ -3,18 +3,46 @@
 # Put your laptop or workstation ssh public key here
 echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC0YP818L8HTt+pKUU+XPD8dJ9kYDhtplUKaodICGcS63A6EgdGGaxh45DVz8JmTNbP3RHQw6XbfTjNGmOO56UaGxQOsc+ONZ8fFjd+qa+7hBo6tIlrdRkrgZgKNDhTh4HijDgaqpPLhXroUK2TE61CSCiJezVbwwXtXU43wQYoeR06E+Ji1lfLLb5b5pIuUKwTRwa+6u9zL7JrDznKq5YZxsmkX3PNI9gHQT+SnSqPOGctXhbMQX7JWZA60EFx8MZXe8O9QC3LMrgNv90CCR9qnyd7/WTtb+lk/7lTYbFfj2W0WsQZMc2tnvoNv8azeCQcSHs6U2nsKd7lxXmmD0OFtXxSqI/O1628Q71sFjPIvET04I9ENHaAWwaI3s98I3Lt8Z5NLNqHrxwhmrFT5mTdn91Fzq4Ax7UKqcVG8Rtkzg7HnXL6nLIQs/cdRprysJIGC0aEpoHSN1OTqMcJkP4ySv5aYgT/G68Uau5JkBS8tKbeKNw+KE4Aq6tUJ+3etYc= brthomps@brthomps-thinkpadx1carbongen9.remote.csb" >> /home/ec2-user/.ssh/authorized_keys
 
+
+# Configure Ollama and Open WebUI 
+# This assumes we have a database we want to restore, if not comment out the aws s3 cp line.
+mkdir /home/ec2-user/open-webui
+#aws s3 cp s3://tfstate-bucket-auto-intelligence/webui.db /home/ec2-user/open-webui/webui.db
+docker run -d -p 3000:8080 --gpus=all -v ollama:/root/.ollama -v /home/ec2-user/open-webui:/app/backend/data --add-host=host.docker.internal:host-gateway --name open-webui --restart always ghcr.io/open-webui/open-webui:ollama
+
 # Configure nginx 
+# Get our public IP
+public_ip=$(curl -s -f api.ipify.org)
 mkdir -p conf.d ssl 
-aws s3 cp s3://tfstate-bucket-auto-intelligence/open-webui.conf /home/ec2-user/conf.d/open-webui.conf
+
+cat << 'EOF' > /home/ec2-user/conf.d/open-webui.conf
+server {
+    listen 443 ssl;
+    server_name $public_ip;
+
+    ssl_certificate /etc/nginx/ssl/nginx.crt;
+    ssl_certificate_key /etc/nginx/ssl/nginx.key;
+    ssl_protocols TLSv1.2 TLSv1.3;
+
+    location / {
+        proxy_pass http://host.docker.internal:3000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # (Optional) Disable proxy buffering for better streaming response from models
+        proxy_buffering off;
+    }
+}
+EOF
+
+#aws s3 cp s3://tfstate-bucket-auto-intelligence/open-webui.conf /home/ec2-user/conf.d/open-webui.conf
 sleep 2
-output=$(curl -s -f api.ipify.org)
-sed -i "s/<ip_address>/$output/" /home/ec2-user/conf.d/open-webui.conf
+
+#sed -i "s/<ip_address>/$output/" /home/ec2-user/conf.d/open-webui.conf
 openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout ssl/nginx.key -out ssl/nginx.crt -subj "/CN=$output"
 sleep 2
 docker run -d -name nginx -p 443:443 -v /home/ec2-user/conf.d:/etc/nginx/conf.d -v /home/ec2-user/ssl:/etc/nginx/ssl nginx:alpine
 
-# Configure 
-mkdir /home/ec2-user/open-webui
-aws s3 cp s3://tfstate-bucket-auto-intelligence/webui.db /home/ec2-user/open-webui/webui.db
-docker run -d -p 3000:8080 --gpus=all -v ollama:/root/.ollama -v /home/ec2-user/open-webui:/app/backend/data --name open-webui --restart always ghcr.io/open-webui/open-webui:ollama
 
