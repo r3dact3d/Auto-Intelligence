@@ -10,7 +10,7 @@ mkdir /home/ec2-user/open-webui
 #aws s3 cp s3://tfstate-bucket-auto-intelligence/webui.db /home/ec2-user/open-webui/webui.db
 #docker run -d -p 3000:8080 --gpus=all -v ollama:/root/.ollama -v /home/ec2-user/open-webui:/app/backend/data --add-host=host.docker.internal:host-gateway --name open-webui --restart always ghcr.io/open-webui/open-webui:ollama
 
-#sleep 300
+sleep 300
 
 # Configure nginx 
 # Get our public IP
