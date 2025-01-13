@@ -3,24 +3,50 @@
 # Put your laptop or workstation ssh public key here
 echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC0YP818L8HTt+pKUU+XPD8dJ9kYDhtplUKaodICGcS63A6EgdGGaxh45DVz8JmTNbP3RHQw6XbfTjNGmOO56UaGxQOsc+ONZ8fFjd+qa+7hBo6tIlrdRkrgZgKNDhTh4HijDgaqpPLhXroUK2TE61CSCiJezVbwwXtXU43wQYoeR06E+Ji1lfLLb5b5pIuUKwTRwa+6u9zL7JrDznKq5YZxsmkX3PNI9gHQT+SnSqPOGctXhbMQX7JWZA60EFx8MZXe8O9QC3LMrgNv90CCR9qnyd7/WTtb+lk/7lTYbFfj2W0WsQZMc2tnvoNv8azeCQcSHs6U2nsKd7lxXmmD0OFtXxSqI/O1628Q71sFjPIvET04I9ENHaAWwaI3s98I3Lt8Z5NLNqHrxwhmrFT5mTdn91Fzq4Ax7UKqcVG8Rtkzg7HnXL6nLIQs/cdRprysJIGC0aEpoHSN1OTqMcJkP4ySv5aYgT/G68Uau5JkBS8tKbeKNw+KE4Aq6tUJ+3etYc= brthomps@brthomps-thinkpadx1carbongen9.remote.csb" >> /home/ec2-user/.ssh/authorized_keys
 
-
 # Configure Ollama and Open WebUI 
-# This assumes we have a database we want to restore, if not comment out the aws s3 cp line.
 mkdir /home/ec2-user/open-webui
-#aws s3 cp s3://tfstate-bucket-auto-intelligence/webui.db /home/ec2-user/open-webui/webui.db
-#docker run -d -p 3000:8080 --gpus=all -v ollama:/root/.ollama -v /home/ec2-user/open-webui:/app/backend/data --add-host=host.docker.internal:host-gateway --name open-webui --restart always ghcr.io/open-webui/open-webui:ollama
 
-sleep 300
+# Function to get public IP with retry logic
+get_public_ip() {
+    local max_attempts=30
+    local attempt=1
+    local wait_time=10
+    local public_ip=""
+    
+    while [ $attempt -le $max_attempts ]; do
+        echo "Attempt $attempt to get public IP..."
+        public_ip=$(curl -s -f http://api.ipify.org)
+        
+        if [ -n "$public_ip" ] && [[ $public_ip =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Successfully obtained public IP: $public_ip"
+            echo "$public_ip"
+            return 0
+        fi
+        
+        echo "Failed to get valid public IP, waiting ${wait_time} seconds..."
+        sleep $wait_time
+        attempt=$((attempt + 1))
+    done
+    
+    echo "Failed to get public IP after $max_attempts attempts" >&2
+    return 1
+}
+
+# Get public IP with retry logic
+public_ip=$(get_public_ip)
+if [ $? -ne 0 ]; then
+    echo "Could not obtain public IP. Exiting."
+    exit 1
+fi
 
 # Configure nginx 
-# Get our public IP
-public_ip=$(curl -s -f api.ipify.org)
 mkdir -p conf.d ssl 
 
-cat << 'EOF' > /home/ec2-user/conf.d/open-webui.conf
+# Create nginx configuration
+cat << EOF > /home/ec2-user/conf.d/open-webui.conf
 server {
     listen 443 ssl;
-    server_name $public_ip;
+    server_name ${public_ip};
 
     ssl_certificate /etc/nginx/ssl/nginx.crt;
     ssl_certificate_key /etc/nginx/ssl/nginx.key;
@@ -28,22 +54,23 @@ server {
 
     location / {
         proxy_pass http://host.docker.internal:3000;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
 
-        # (Optional) Disable proxy buffering for better streaming response from models
         proxy_buffering off;
     }
 }
 EOF
 
-#sed -i "s/<ip_address>/$public_ip/" /home/ec2-user/conf.d/open-webui.conf
-openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout ssl/nginx.key -out ssl/nginx.crt -subj "/CN=$public_ip"
-sleep 30
+# Generate SSL certificate
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+    -keyout ssl/nginx.key -out ssl/nginx.crt \
+    -subj "/CN=${public_ip}"
 
-cat << 'EOF' > /home/ec-user/docker-compose.yml
+# Create docker-compose configuration
+cat << EOF > /home/ec2-user/docker-compose.yml
 version: '3.8'
 
 services:
@@ -85,8 +112,5 @@ volumes:
   ollama:
 EOF
 
-docker compose -f /home/ec2-user/docker-compose.yml up -d 
-
-#docker run -d --gpus=all -v /home/ec2-user/ollama:/root/.ollama -p 11434:11434 --name ollama --add-host=host.docker.internal:host-gateway ollama/ollama
-#docker run -d -p 3000:8080 --gpus=all -v ollama:/root/.ollama -v /home/ec2-user/open-webui:/app/backend/data --add-host=host.docker.internal:host-gateway --name open-webui --restart always -e OLLAMA_API_BASE_URL=http://host.docker.internal ghcr.io/open-webui/open-webui:ollama
-#docker run -d --name nginx -p 443:443 -v /home/ec2-user/conf.d:/etc/nginx/conf.d -v /home/ec2-user/ssl:/etc/nginx/ssl --add-host=host.docker.internal:host-gateway nginx:alpine
+# Start the containers
+docker compose -f /home/ec2-user/docker-compose.yml up -d
