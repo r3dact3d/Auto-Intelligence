@@ -126,29 +126,12 @@ nvidia-smi -l
 ## Backup and Restore - to be tested
 
 ```bash
-# Quick commands summary for export and import
-# Export:
-docker cp open-webui:/app/backend/data/webui.db ./webui.db
-
-# Stop container on the new server:
-docker stop open-webui
-
-# Import:
-docker cp ./webui.db open-webui:/app/backend/data/webui.db
-
-# Start container:
-docker start open-webui
-```
-
-```bash
 docker cp open-webui:/app/backend/data/webui.db ./webui.db
 aws s3 cp webui.db s3://tfstate-bucket-auto-intelligence/webui.db
 ```
 
 ## TODO
 
-- Enable TLS
-- Add source IP secret in GitHub to Terraform security group rule
 - Attempt backup and restore
 - Automate backup
 - Automate Docker run and restore
