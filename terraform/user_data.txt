@@ -10,7 +10,7 @@ mkdir -p /home/ec2-user/open-webui
 if aws s3api list-objects --bucket tfstate-bucket-auto-intelligence --query 'Objects[].Key' | grep webui.db; then
   aws s3 cp s3://tfstate-bucket-auto-intelligence/webui.db /home/ec2-user/open-webui/webui.db
 else
-  echo "NO Backup DB file found, moving on
+  echo "NO Backup DB file found, moving on"
 fi
 
 # Configure nginx 
