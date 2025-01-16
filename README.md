@@ -21,7 +21,7 @@ This project leverages Terraform to provision infrastructure and integrates GitH
 ![Workflow](/images/GitOps-AutoIntelligence.jpg)
 
 > **Note:**
-> - The ec2 details are out of date, see `terraform` code in `main.tf`.
+> - Please see `terraform` code in `main.tf`.
 
 ---
 
