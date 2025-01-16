@@ -102,7 +102,7 @@ This project leverages Terraform to provision infrastructure and integrates GitH
 
    **NOTE:** You might still need to wait a few more minutes while the post setup script runs
 
-At this point, we should be able to access the Open WebUI through our browser at *https://public IP/* so we can login first as Admin and do the initial config.
+At this point, we should be able to access the Open WebUI through our browser at [https://public_ip](https://public_ip/) so we can login first as Admin and do the initial config.
 
    > To get a model to work with, search [Ollama](https://ollama.com/search) for any model you want, then search in the [Open WebUI](https://docs.openwebui.com/getting-started/quick-start/starting-with-ollama) GUI to pull it.
 
@@ -119,15 +119,4 @@ nvidia-smi -l
 
 ![alt text](/images/nvidia-smi-cmd.png)
 
-## Backup and Restore - to be tested
-
-```bash
-docker cp open-webui:/app/backend/data/webui.db ./webui.db
-aws s3 cp webui.db s3://tfstate-bucket-auto-intelligence/webui.db
-```
-
-## TODO
-
-- Attempt backup and restore
-- Automate backup
-- Automate Docker run and restore
+## 
