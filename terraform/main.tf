@@ -190,7 +190,7 @@ resource "aws_iam_instance_profile" "ec2_profile" {
 }
 
 resource "aws_instance" "ollama_instance" {
-  instance_type               = "g4dn.2xlarge"
+  instance_type               = "g4dn.xlarge"
   vpc_security_group_ids      = [aws_security_group.ollama_security_group.id]
   associate_public_ip_address = true
   key_name        = aws_key_pair.cloud_key.key_name
