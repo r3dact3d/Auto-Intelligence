@@ -81,7 +81,7 @@ This project leverages Terraform to provision infrastructure and integrates GitH
 
 ---
 
-### Post-Infrastructure: Installing Ollama and Open WebUI
+### Post-Infrastructure: AutoMagic
 
 5. **Review Terraform Outputs**
    After the GitHub Actions workflow completes, retrieve instance details from the output.
