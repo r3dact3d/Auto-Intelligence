@@ -119,4 +119,6 @@ nvidia-smi -l
 
 ![alt text](/images/nvidia-smi-cmd.png)
 
-## 
+## Backup/Restore
+
+I place a script called *backup.sh* in the home directory of ec2-user.  You will need to run it manually in order to take a backup of the database and upload it to the s3 bucket.  The ec2 instance comes with assume role that has access to push/pull to s3 bucket.
