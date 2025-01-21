@@ -3,14 +3,14 @@
 # Put your laptop or workstation ssh public key here
 echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC0YP818L8HTt+pKUU+XPD8dJ9kYDhtplUKaodICGcS63A6EgdGGaxh45DVz8JmTNbP3RHQw6XbfTjNGmOO56UaGxQOsc+ONZ8fFjd+qa+7hBo6tIlrdRkrgZgKNDhTh4HijDgaqpPLhXroUK2TE61CSCiJezVbwwXtXU43wQYoeR06E+Ji1lfLLb5b5pIuUKwTRwa+6u9zL7JrDznKq5YZxsmkX3PNI9gHQT+SnSqPOGctXhbMQX7JWZA60EFx8MZXe8O9QC3LMrgNv90CCR9qnyd7/WTtb+lk/7lTYbFfj2W0WsQZMc2tnvoNv8azeCQcSHs6U2nsKd7lxXmmD0OFtXxSqI/O1628Q71sFjPIvET04I9ENHaAWwaI3s98I3Lt8Z5NLNqHrxwhmrFT5mTdn91Fzq4Ax7UKqcVG8Rtkzg7HnXL6nLIQs/cdRprysJIGC0aEpoHSN1OTqMcJkP4ySv5aYgT/G68Uau5JkBS8tKbeKNw+KE4Aq6tUJ+3etYc= brthomps@brthomps-thinkpadx1carbongen9.remote.csb" >> /home/ec2-user/.ssh/authorized_keys
 
-# Configure Ollama and Open WebUI 
-# This assumes we have a database we want to restore, if not comment out the aws s3 cp line.
+# Configure/Restore Ollama and Open WebUI with nginx
 mkdir -p /home/ec2-user/open-webui
 
+# Check if backup file exists and restore or moveon
 if aws s3api list-objects --bucket tfstate-bucket-auto-intelligence --query 'Objects[].Key' | grep webui.db; then
   aws s3 cp s3://tfstate-bucket-auto-intelligence/webui.db /home/ec2-user/open-webui/webui.db
 else
-  echo "NO Backup DB file found, moving on
+  echo "NO Backup DB file found, moving on"
 fi
 
 # Configure nginx 
@@ -18,6 +18,7 @@ fi
 public_ip=$(curl -s -f api.ipify.org)
 mkdir -p /home/ec2-user/conf.d /home/ec2-user/ssl 
 
+# Create nginx config file
 cat << 'EOF' > /home/ec2-user/conf.d/open-webui.conf
 map $http_upgrade $connection_upgrade {
     default upgrade;
@@ -54,9 +55,13 @@ server {
 }
 EOF
 
+# Update nginx config file with public ip
 sed -i "s/<ip_address>/$public_ip/" /home/ec2-user/conf.d/open-webui.conf
+
+# Create ssl certificate on the fly
 openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /home/ec2-user/ssl/nginx.key -out /home/ec2-user/ssl/nginx.crt -subj "/CN=$public_ip"
 
+# Run the docker containers
 docker run -d -p 3000:8080 --gpus=all -v ollama:/root/.ollama -v /home/ec2-user/open-webui:/app/backend/data --add-host=host.docker.internal:host-gateway --name open-webui --restart always  ghcr.io/open-webui/open-webui:ollama
 docker run -d --name nginx -p 443:443 -v /home/ec2-user/conf.d:/etc/nginx/conf.d -v /home/ec2-user/ssl:/etc/nginx/ssl --add-host=host.docker.internal:host-gateway nginx:alpine
 
